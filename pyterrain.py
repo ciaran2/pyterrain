@@ -12,7 +12,7 @@ SHORE_COLOR = (244,164,96)
 LAND_COLOR = (183,123,72)
 MOUNTAIN_COLOR = (122,102,78)
 
-def main(width, height, sea_level, xoffset=0, yoffset=0):
+def main(width, height, sea_level, xoffset=0, yoffset=0, outfile='testmap.png'):
 
   worldmap = pygame.Surface((width, height))
   worldmap.fill(SEA_COLOR)
@@ -35,7 +35,7 @@ def main(width, height, sea_level, xoffset=0, yoffset=0):
       elif (sea_level - land_level) < 1000:
         worldmap.set_at((x, y), COAST_COLOR)
 
-  pygame.image.save(worldmap,"testmap.png")
+  pygame.image.save(worldmap, outfile)
  
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -46,5 +46,8 @@ if __name__ == '__main__':
                       help='Offset to apply to the horizontal noise position', default=0)
   parser.add_argument('-y', '--yoffset', type=float,
                       help='Offset to apply to the vertical noise position', default=0)
+  parser.add_argument('-o', '--outfile', type=str, help='File to write the map image to',
+                      default='testmap.png')
   args = parser.parse_args()
+  print(args)
   main(**vars(args))
