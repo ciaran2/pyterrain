@@ -4,33 +4,39 @@ import argparse
 import sys
 
 import noise
-import pygame
+from PIL import Image
 
 def main(width=1024, height=1024, sea_level=5000, xoffset=0, yoffset=0, outfile='testmap.png',
          sea_color=(0,0,255), coast_color=(0,100,255), shore_color=(244,164,96), land_color=(183,123,72),
          mountain_color=(122,102,78)):
-  worldmap = pygame.Surface((width, height))
-  worldmap.fill(sea_color)
+
+  worldmap = []
 
   freq_mod = 3/float(width)
 
-  for x in range(width):
-    for y in range(height):
+  for y in range(height):
+    for x in range(width):
       nx = x * freq_mod + xoffset
       ny = y * freq_mod + yoffset
       land_level = 10000 * noise.snoise2(nx, ny, octaves=6)
       if land_level > sea_level:
         if land_level < 5000:
           if (land_level - sea_level) < 1000:
-            worldmap.set_at((x, y), shore_color)
+            worldmap.append(shore_color)
           else:
-            worldmap.set_at((x, y), land_color)
+            worldmap.append(land_color)
         else:
-          worldmap.set_at((x, y), mountain_color)
+          worldmap.append(mountain_color)
       elif (sea_level - land_level) < 1000:
-        worldmap.set_at((x, y), coast_color)
+        worldmap.append(coast_color)
+      else:
+        worldmap.append(sea_color)
 
-  pygame.image.save(worldmap, outfile)
+  print(len(worldmap))
+
+  im = Image.new('RGB',(width,height))
+  im.putdata(worldmap)
+  im.save(outfile)
 
 def color(s):
   if s.startswith('#'):
