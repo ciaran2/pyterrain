@@ -75,22 +75,22 @@ if __name__ == '__main__':
   parser.add_argument('-s', '--scale', type=float, help='Scale of the map')
   parser.add_argument('-x', '--xoffset', type=float, help='Offset to apply to the horizontal noise position')
   parser.add_argument('-y', '--yoffset', type=float, help='Offset to apply to the vertical noise position')
-  parser.add_argument('-S', '--sea_level', type=float, help="How high should the map's sea level be")
+  parser.add_argument('-S', '--sea-level', type=float, help="How high should the map's sea level be")
 
-  parser.add_argument('-O', '--num_octaves', type=int, help='How many octaves to use')
+  parser.add_argument('-O', '--num-octaves', type=int, help='How many octaves to use')
 
-  parser.add_argument('--min_height', type=float, help='Lowest possible map point')
-  parser.add_argument('--max_height', type=float, help='Hightest possible map point')
+  parser.add_argument('--min-height', type=float, help='Lowest possible map point')
+  parser.add_argument('--max-height', type=float, help='Hightest possible map point')
   
-  parser.add_argument('--sea_color', type=color, help='Color for deep water')
-  parser.add_argument('--coast_color', type=color, help='Color for water near land')
-  parser.add_argument('--shore_color', type=color, help='Color for land near water')
-  parser.add_argument('--land_color', type=color, help='Color for land')
-  parser.add_argument('--mountain_color', type=color, help='Color for mountains')
+  parser.add_argument('--sea-color', type=color, help='Color for deep water')
+  parser.add_argument('--coast-color', type=color, help='Color for water near land')
+  parser.add_argument('--shore-color', type=color, help='Color for land near water')
+  parser.add_argument('--land-color', type=color, help='Color for land')
+  parser.add_argument('--mountain-color', type=color, help='Color for mountains')
 
-  parser.add_argument('--coast_diff', type=float, help='Height limit from shore for coast')
-  parser.add_argument('--shore_diff', type=float, help='Height limit from coast for shore')
-  parser.add_argument('--mountain_height', type=float, help='Height at which to make mountains')
+  parser.add_argument('--coast-diff', type=float, help='Height limit from shore for coast')
+  parser.add_argument('--shore-diff', type=float, help='Height limit from coast for shore')
+  parser.add_argument('--mountain-height', type=float, help='Height at which to make mountains')
 
   parser.add_argument('-m', '--mode', type=str, choices=('terrain', 'height'),
                       help='Type of map to generate')
