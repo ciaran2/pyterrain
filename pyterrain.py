@@ -9,7 +9,6 @@ import pygame
 def main(width=1024, height=1024, sea_level=5000, xoffset=0, yoffset=0, outfile='testmap.png',
          sea_color=(0,0,255), coast_color=(0,100,255), shore_color=(244,164,96), land_color=(183,123,72),
          mountain_color=(122,102,78)):
-
   worldmap = pygame.Surface((width, height))
   worldmap.fill(sea_color)
 
@@ -62,4 +61,4 @@ if __name__ == '__main__':
   parser.add_argument('--mountain_color', type=color, help='Color for mountains')
   
   args = {k:v for k,v in vars(parser.parse_args()).items() if v is not None}
-  main(args)
+  main(**args)
