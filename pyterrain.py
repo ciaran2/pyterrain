@@ -8,66 +8,50 @@ import sys
 import noise
 import PIL.Image
 
-def main(width=800, height=600, scale=3, mode='terrain', outfile='out.png', **kwargs):
+def main(width=800, height=600, scale=3, xoffset=0, yoffset=0, num_octaves=6, outfile='out.png',
+         min_height=-10000, max_height=10000, **kwargs):
 
   worldmap = [[(0,0,0) for i in range(width)] for i in range(height)]
 
   freq_mod = scale/width
 
-  if mode == 'terrain':
-    terrain(worldmap, width, height, freq_mod, **kwargs)
-  elif mode == 'rgbheight':
-    rgb_heightmap(worldmap, width, height, freq_mod, **kwargs)
-  elif mode == 'height':
-    heightmap(worldmap, width, height, freq_mod, **kwargs)
-  else:
-    raise ValueError('Invalid mode')
-    
+  for y in range(height):
+    for x in range(width):
+      nx = x * freq_mod + xoffset
+      ny = y * freq_mod + yoffset
+      land_level = (max_height - min_height) * (noise.snoise2(nx, ny, octaves=num_octaves) * 0.5 + 0.5) + min_height
+      worldmap[y][x] = get_coloring(land_level, min_height, max_height, **kwargs)
+  
   im = PIL.Image.new('RGB',(width,height))
   im.putdata(list(itertools.chain(*worldmap)))
   im.save(outfile)
 
-def terrain(worldmap, width, height,freq_mod, sea_level=1000, xoffset=0, yoffset=0,
-         sea_color=(0,0,255), coast_color=(0,100,255), shore_color=(244,164,96), land_color=(183,123,72),
-         mountain_color=(122,102,78)):
-  for y in range(height):
-    for x in range(width):
-      nx = x * freq_mod + xoffset
-      ny = y * freq_mod + yoffset
-      land_level = 10000 * noise.snoise2(nx, ny, octaves=6)
-      if land_level > sea_level:
-        if land_level < 5000:
-          if (land_level - sea_level) < 1000:
-            worldmap[y][x] = shore_color
-          else:
-            worldmap[y][x] = land_color
-        else:
-          worldmap[y][x] = mountain_color
-      elif (sea_level - land_level) < 1000:
-        worldmap[y][x] = coast_color
+def get_coloring(land_level, min_height, max_height, mode='terrain', **kwargs):
+  if mode == 'terrain':
+    return terrain_color(land_level, min_height, max_height, **kwargs)
+  elif mode == 'height':
+    return height_color(land_level, min_height, max_height, **kwargs)
+  
+def terrain_color(land_level, min_height, max_height, sea_level=1000, sea_color=(0,0,255),
+                  coast_color=(0,100,255), shore_color=(244,164,96), land_color=(183,123,72),
+                  mountain_color=(122,102,78), coast_diff=1000, shore_diff=1000, mountain_height=15000,
+                  **kwargs):
+  if land_level > sea_level:
+    if land_level - min_height < mountain_height:
+      if (land_level - sea_level) < shore_diff:
+        return shore_color
       else:
-        worldmap[y][x] = sea_color
+        return land_color
+    else:
+      return mountain_color
+  elif (sea_level - land_level) < coast_diff:
+    return coast_color
+  else:
+    return sea_color
 
-def rgb_heightmap(worldmap, width, height,freq_mod, sea_level=1000, xoffset=0, yoffset=0):
-  for y in range(height):
-    for x in range(width):
-      nx = x * freq_mod + xoffset
-      ny = y * freq_mod + yoffset
-      land_level = int((2**(8*3)-1) * ((noise.snoise2(nx, ny, octaves=6) + 1) / 2))
-      b = land_level & 0xff
-      land_level >>= 8
-      g = land_level & 0xff
-      land_level >>= 8
-      r = land_level & 0xff
-      worldmap[y][x] = r, g, b
-
-def heightmap(worldmap, width, height,freq_mod, sea_level=1000, xoffset=0, yoffset=0):
-  for y in range(height):
-    for x in range(width):
-      nx = x * freq_mod + xoffset
-      ny = y * freq_mod + yoffset
-      land_level = int((2**8 - 1) * ((noise.snoise2(nx, ny, octaves=6) + 1) / 2))
-      worldmap[y][x] = land_level, land_level, land_level
+def height_color(land_level, min_height, max_height, **kwargs):
+  h = int(2**8 * ((land_level - min_height) / (max_height - min_height)))
+  return h, h, h
 
 def color(s):
   if s.startswith('#'):
@@ -93,13 +77,22 @@ if __name__ == '__main__':
   parser.add_argument('-y', '--yoffset', type=float, help='Offset to apply to the vertical noise position')
   parser.add_argument('-S', '--sea_level', type=float, help="How high should the map's sea level be")
 
+  parser.add_argument('-O', '--num_octaves', type=int, help='How many octaves to use')
+
+  parser.add_argument('--min_height', type=float, help='Lowest possible map point')
+  parser.add_argument('--max_height', type=float, help='Hightest possible map point')
+  
   parser.add_argument('--sea_color', type=color, help='Color for deep water')
   parser.add_argument('--coast_color', type=color, help='Color for water near land')
   parser.add_argument('--shore_color', type=color, help='Color for land near water')
   parser.add_argument('--land_color', type=color, help='Color for land')
   parser.add_argument('--mountain_color', type=color, help='Color for mountains')
 
-  parser.add_argument('-m', '--mode', type=str, choices=('terrain', 'height', 'rgbheight'),
+  parser.add_argument('--coast_diff', type=float, help='Height limit from shore for coast')
+  parser.add_argument('--shore_diff', type=float, help='Height limit from coast for shore')
+  parser.add_argument('--mountain_height', type=float, help='Height at which to make mountains')
+
+  parser.add_argument('-m', '--mode', type=str, choices=('terrain', 'height'),
                       help='Type of map to generate')
 
   parser.add_argument('-o', '--outfile', type=str, help='File to write the map image to')
